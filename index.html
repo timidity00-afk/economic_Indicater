@@ -1,0 +1,35 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>아침 금융지표</title>
+<style>
+:root{--bg:#f3f5f8;--ink:#14213d;--mut:#5b6678;--line:#d5dbe5;--up:#d6342c;--dn:#1f5fbf}
+@media(prefers-color-scheme:dark){:root{--bg:#10151f;--ink:#e8ecf3;--mut:#9aa6ba;--line:#2a3345;--up:#ff6b61;--dn:#6ea4ff}}
+*{box-sizing:border-box}
+body{margin:0 auto;max-width:720px;padding:20px 16px 48px;background:var(--bg);color:var(--ink);font:15px/1.6 Pretendard,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+h1{font-size:13px;font-weight:600;color:var(--mut);margin:0}
+#asof{font-size:22px;font-weight:700;margin:2px 0 14px}
+.talk{background:var(--ink);color:var(--bg);padding:16px 18px;border-radius:6px}
+.talk p{margin:0 0 8px}.talk p:last-child{margin:0}
+h2{font-size:15px;margin:28px 0 4px;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+.r{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.up{color:var(--up)}.dn{color:var(--dn)}
+.big{font-size:36px;font-weight:700;font-variant-numeric:tabular-nums}
+small{color:var(--mut)}
+</style></head><body>
+<h1>퇴직연금 영업 · 아침 금융지표</h1><div id="asof">불러오는 중…</div>
+<div class="talk" id="talk"></div><div id="body"></div>
+<script>
+const f=(n,d=2)=>n.toLocaleString("ko-KR",{minimumFractionDigits:d,maximumFractionDigits:d});
+const c=v=>v>0?"up":v<0?"dn":"", a=v=>v>0?"▲":v<0?"▼":"–";
+const row=(n,v,t,x)=>`<div class="r"><span>${n}</span><span><b>${v}</b> <span class="${c(x)}">${a(x)} ${t}</span></span></div>`;
+fetch("data.json?"+Date.now()).then(r=>r.json()).then(d=>{
+ asof.textContent=d.asof+" 종가 기준";
+ talk.innerHTML=d.talk.map(t=>`<p>${t}</p>`).join("");
+ const F=d.fiscal;
+ body.innerHTML=
+ `<h2>금리</h2>`+d.rates.map(x=>row(x.name,f(x.value)+"%",Math.abs(x.chg).toFixed(1)+"bp",x.chg)).join("")+
+ `<h2>재정검증 할인율</h2><div class="r"><span><span class="big">${f(F.rate)}%</span><br><small>10년 국고채 ${F.months}개월 평균 ${f(F.avg,3)}% · 기준월 ${F.base.slice(0,4)}.${F.base.slice(4)}</small></span></div>`+
+ `<h2>지수·환율·원자재</h2>`+d.markets.map(x=>row(x.name,f(x.value),Math.abs(x.pct).toFixed(2)+"%",x.pct)).join("")+
+ `<h2>경제 캘린더</h2>`+(d.events.length?d.events.map(e=>`<div class="r"><span>${e.title}</span><small>${e.date.slice(5)}</small></div>`).join(""):"<p><small>14일 내 등록된 일정이 없습니다. events.json에 추가하세요.</small></p>")+
+ `<p><small>마지막 업데이트 ${d.updated}</small></p>`;
+}).catch(()=>{asof.textContent="데이터를 불러오지 못했습니다. data.json을 확인하세요."});
+</script></body></html>
